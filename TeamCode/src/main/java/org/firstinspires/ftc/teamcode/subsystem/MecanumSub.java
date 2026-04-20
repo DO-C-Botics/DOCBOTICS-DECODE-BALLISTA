@@ -27,6 +27,15 @@ public class MecanumSub extends SubsystemBase {
     private TelemetryManager panelsTelemetry;
     private Telemetry telemetry;
 
+    private int flPos = 0;
+    private int frPos = 0;
+    private int blPos = 0;
+    private int brPos = 0;
+
+    private double poseXInches = 0.0;
+    private double poseYInches = 0.0;
+    private double lastHeadingRad = 0.0;
+
     public MecanumSub(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
@@ -51,7 +60,8 @@ public class MecanumSub extends SubsystemBase {
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        resetIMU();
+        resetOdometry();
+
     }
 
     // Panels only, no Driver Station mirror
@@ -63,8 +73,56 @@ public class MecanumSub extends SubsystemBase {
         isFieldCentric = fieldCentric;
     }
 
-    public void resetIMU() {
-        imu.resetYaw();
+    public void resetOdometry() {
+        flPos = frontLeft.getCurrentPosition();
+        frPos = frontRight.getCurrentPosition();
+        blPos = backLeft.getCurrentPosition();
+        brPos = backRight.getCurrentPosition();
+
+        lastHeadingRad = -getRobotYawRadians();
+
+        poseXInches = 0.0;
+        poseYInches = 0.0;
+    }
+
+    public void updateOdometry() {
+        int fl = frontLeft.getCurrentPosition();
+        int fr = frontRight.getCurrentPosition();
+        int bl = backLeft.getCurrentPosition();
+        int br = backRight.getCurrentPosition();
+
+        int df = fl - flPos;   // forward (FL, BR)
+        int dr = fr - frPos;   // rotate (FR, BL)
+
+        flPos = fl;
+        frPos = fr;
+        blPos = bl;
+        brPos = br;
+
+        double ticksPerInch = Constants.MecanumConstants.ticksPerInch; // TUNE THIS to your robot (ticks per inch)
+        double dForward = (df + br) / 2.0 / ticksPerInch;   // average forward wheel motion
+        double dRotation = (dr - bl) / 2.0 / ticksPerInch;  // rough turn
+
+        double headingRad = -getRobotYawRadians();
+        double dTheta = headingRad - lastHeadingRad;
+
+        double worldDX = 0.0;
+        double worldDY = 0.0;
+
+        if (Math.abs(dTheta) < 1e-5) {
+            worldDX = dForward * Math.cos(headingRad);
+            worldDY = dForward * Math.sin(headingRad);
+        } else {
+            double radius = dForward / dTheta;
+            double centerX = -radius * Math.sin(headingRad);
+            double centerY =  radius * Math.cos(headingRad);
+            worldDX = centerX - centerX * Math.cos(dTheta) + centerY * Math.sin(dTheta);
+            worldDY = centerY - centerY * Math.cos(dTheta) - centerX * Math.sin(dTheta);
+        }
+
+        poseXInches += worldDX;
+        poseYInches += worldDY;
+        lastHeadingRad = headingRad;
     }
 
     public double getRobotYawRadians(){
@@ -73,6 +131,13 @@ public class MecanumSub extends SubsystemBase {
         } else {
             return Math.abs(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         }
+    }
+
+    public double getPoseXMecanumIn(){
+        return poseXInches;
+    }
+    public double getPoseYMecanumIn(){
+        return poseYInches;
     }
 
     public void drive(double forward, double strafe, double rotation) {

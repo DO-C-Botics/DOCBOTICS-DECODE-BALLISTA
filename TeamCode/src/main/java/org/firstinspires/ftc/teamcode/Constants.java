@@ -20,10 +20,16 @@ public class Constants {
 
     }
 
+    public static final class PoseManagerConstants {
+        public static final int limelightPipeline = 0;
+        public static final int limlightPollRateHZ = 100;
+    }
+
     public static final class MecanumConstants {
         public static final double thresHold = 0.05;
         public static final double strafeCorrection = 1.1;
         public static boolean isFieldCentric = true;
+        public static final double ticksPerInch = 100; //TODO
 
 //        public static final class encoderAutoConstants{
 //            public static final double     COUNTS_PER_MOTOR_REV    = 28 ;    // REV ultraplanetary motor

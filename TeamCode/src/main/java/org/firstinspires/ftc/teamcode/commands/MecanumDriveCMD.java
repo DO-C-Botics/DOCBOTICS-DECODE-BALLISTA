@@ -44,7 +44,7 @@ public class MecanumDriveCMD extends CommandBase {
             boolean reset = resetSupplier.get();
 
         if(reset){
-            driveSub.resetIMU();
+            driveSub.resetOdometry();
         }
     }
 
