@@ -10,6 +10,10 @@ public class Constants {
 
             public static final String IMU = "imu";
         }
+
+        public static final class OdometryHardwareConstants{
+            public static final String Limelight3a = "Limelight3A";
+        }
     }
 
     public static final class OIConstants{
@@ -23,6 +27,13 @@ public class Constants {
     public static final class PoseManagerConstants {
         public static final int limelightPipeline = 0;
         public static final int limlightPollRateHZ = 100;
+
+        public static final long maxStalenessMs = 100;
+        public static final int minTagCount = 1;
+        public static final double maxSingleTagDistanceMeters = 3.0;
+        public static final double maxVisionOdomErrorInches = 12.0;
+        public static final double visionWeightXY = 0.15;
+        public static final double visionWeightHeading = 0.05;
     }
 
     public static final class MecanumConstants {

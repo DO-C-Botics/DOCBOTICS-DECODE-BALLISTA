@@ -189,6 +189,11 @@ public class MecanumSub extends SubsystemBase {
     public double getStrPower()  { return strPower; }
     public double getRotPower()  { return rotPower; }
 
+    public void setPoseInches(double xInches, double yInches) {
+        poseXInches = xInches;
+        poseYInches = yInches;
+    }
+
     @Override
     public void periodic() {
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
