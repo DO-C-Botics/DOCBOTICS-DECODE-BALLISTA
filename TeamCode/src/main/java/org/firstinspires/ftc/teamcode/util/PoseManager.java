@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -7,19 +8,22 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.subsystem.MecanumSub;
 
 public class PoseManager {
-    Limelight3A limelight;
-    MecanumSub mecanumSub;
+    private final Limelight3A limelight;
+    private final MecanumSub mecanumSub;
 
-    //These are the drive localization variables, ODOMETRY PODS and mecanum wheel encoders
     private double poseXInches;
     private double poseYInches;
     private double headingDeg;
-    public PoseManager(MecanumSub mecanumSub, HardwareMap hardwareMap){
+
+    public PoseManager(MecanumSub mecanumSub, HardwareMap hardwareMap) {
         this.mecanumSub = mecanumSub;
 
-        limelight = hardwareMap.get(limelight.getClass(), Constants.HardWareConstants.OdometryHardwareConstants.Limelight3a);
+        limelight = hardwareMap.get(
+                Limelight3A.class,
+                Constants.HardWareConstants.OdometryHardwareConstants.Limelight3a
+        );
 
-        headingDeg = mecanumSub.getRobotYawRadians();
+        headingDeg = Math.toDegrees(mecanumSub.getRobotYawRadians());
         poseXInches = mecanumSub.getPoseXMecanumIn();
         poseYInches = mecanumSub.getPoseYMecanumIn();
 
@@ -27,6 +31,7 @@ public class PoseManager {
         limelight.setPollRateHz(Constants.PoseManagerConstants.limlightPollRateHZ);
         limelight.start();
     }
+
     public void update() {
         poseXInches = mecanumSub.getPoseXMecanumIn();
         poseYInches = mecanumSub.getPoseYMecanumIn();
@@ -55,6 +60,14 @@ public class PoseManager {
         }
     }
 
+    public Pose getPose() {
+        return new Pose(
+                poseXInches,
+                poseYInches,
+                Math.toRadians(headingDeg)
+        );
+    }
+
     public double getXInches() {
         return poseXInches;
     }
@@ -70,5 +83,4 @@ public class PoseManager {
     public void stopLimelight() {
         limelight.stop();
     }
-
 }
